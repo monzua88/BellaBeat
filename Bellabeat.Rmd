@@ -1,0 +1,179 @@
+---
+title: "Wearables BellaBeat"
+author: "Montserrat Zubieta Angulo"
+date: "2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Análisis de tendencia de uso de dispositivos de seguimiento inteligentes
+
+El objetivo de este análisis es explorar cuáles son las tendencias de uso de dispositivos de seguimiento de datos como actividad física, sueño, temperatura, etc., que se encuentran en el mercado y aplicarlas a los dispositivos de BellaBeat <https://bellabeat.com> y de esta forma generar ideas para la estrategia de marketing de BellaBeat.
+
+Para realizar este análisis se utilizará el conjunto de datos "FitBit Fitness Tracker Data" que se pueden consultar en el siguiente link <https://www.kaggle.com/datasets/arashnic/fitbit>. Este conjunto de datos fue generado por las respuestas a una encuesta distribuida a través de Amazon Mechanical Turk entre el 12.03.2016 y el 12.05.2016. Treinta usuarios de Fitbit dieron su consentimiento para el envío de datos de seguimiento personal, incluido el número de minutos de actividad física, la frecuencia cardíaca y el control del sueño. Este dataset es el resultado de procesar la información original: <https://zenodo.org/record/53894#.X9oeh3Uzaao>
+
+Se analizarán cuatr archicvos csv que forman parte del dataset y que contienen datos sobre la actividad diaria de los usuarios, el ritmo cardiaco registrado, datos sobre el sueño y datos sobre el peso.
+
+Para el análisis se importarán las siguientes librerías de R:
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+```
+
+Y se cargarán los siguientes archivos:
+
+```{r}
+activity <- read.csv("/Users/montserratzubietaangulo/Desktop/BellaBeat Análisis/dailyActivity_merged.csv", header = TRUE)
+
+heart_rate <- read.csv("/Users/montserratzubietaangulo/Desktop/BellaBeat Análisis/heartrate_seconds_merged.csv", header = TRUE)
+
+sleep <- read.csv("/Users/montserratzubietaangulo/Desktop/BellaBeat Análisis/sleepDay_merged.csv", header = TRUE)
+
+weight <- read.csv("/Users/montserratzubietaangulo/Desktop/BellaBeat Análisis/weightLogInfo_merged.csv", header = TRUE)
+```
+
+Los usuarios registran diferentes medidas en sus dispositivos de seguimiento inteligentes. Como se puede ver en la siguiente tabla y su respectiva gráfica más abajo, los 33 usuarios del dispositivo registraron su actividad física, 24 sus datos sobre sueño, 14 su ritmo cardiaco y 8 su peso.
+
+```{r}
+activity_users <- length(unique(activity$Id))
+heart_rate_users <- length(unique(heart_rate$Id))
+sleep_users <- length(unique(sleep$Id))
+weight_users <- length(unique(weight$Id))
+
+measure <- c("activity", "heart_rate", "sleep", "weight")
+users <- c(activity_users,heart_rate_users,sleep_users,weight_users)
+
+trends <- cbind(measure,as.numeric(users))
+trends <- as.data.frame(trends)
+trends
+```
+```{r}
+ggplot(trends, aes(x="", y=users, fill=measure)) +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0) +
+  theme_void()
+```
+
+
+#### Registro de actividad
+
+En el dataset de actividad se encuentra información útil para el análisis. En esta primera gráfica se puede ver la relación entre las Calorías y el total de pasos que dan los usuarios.
+
+```{r}
+ggplot(data=activity)+
+  geom_point(mapping = aes(x=TotalSteps, y=Calories),color='turquoise')+
+  geom_smooth(mapping = aes(x=TotalSteps, y=Calories), color = "blue")+
+  labs(title="Calories vs total steps")
+```
+
+En este gráfico se puede ver que la relación entre los pasos es directamente proporcional a las calorías quemadas, lo que puede ser buen incentivo para los usuarios de los dispositivos de BellaBeat.
+
+En esta misma tabla se encuentran datos sobre la distancia que recorren los usuarios contra los minutos de actividad dependiendo de su intensidad: Muy activo, moderadamente activo, ligeramente activo y sedentario.
+
+```{r}
+ggplot(data=activity)+
+  geom_point(mapping = aes(x=VeryActiveMinutes, y=VeryActiveDistance),color='pink')+
+  geom_smooth(mapping = aes(x=VeryActiveMinutes, y=VeryActiveDistance), color = "magenta")+
+  labs(title="Distancia vs tiempo (muy activo)")
+```
+
+```{r}
+ggplot(data=activity)+
+  geom_point(mapping = aes(x=FairlyActiveMinutes, y=ModeratelyActiveDistance),color='pink')+
+  geom_smooth(mapping = aes(x=FairlyActiveMinutes, y=ModeratelyActiveDistance), color = "magenta")+
+  labs(title="Distancia vs tiempo (Moderadamente activo)")
+```
+
+
+```{r}
+ggplot(data=activity)+
+  geom_point(mapping = aes(x=LightlyActiveMinutes, y=LightActiveDistance),color='pink')+
+  geom_smooth(mapping = aes(x=LightlyActiveMinutes, y=LightActiveDistance), color = "magenta")+
+  labs(title="Distancia vs tiempo (Ligeramente activo)")
+```
+
+En estos gráficos se puede ver que la mayoría de los usuarios registran actividad considerada como ligeramente activa seguida por actividad muy activa y finalmente moderadamente activa. 
+
+#### Registro de intensidad de actividad
+
+Es posible también graficar la intensidad de actividad de los usuarios contra las calorías quemadas:
+
+```{r}
+ggplot(data=activity)+
+  geom_point(mapping = aes(x=VeryActiveMinutes, y=Calories),color='green')+
+  geom_smooth(mapping = aes(x=VeryActiveMinutes, y=Calories), color = "darkgreen")+
+  labs(title="Calorias vs tiempo (muy activo)")
+```
+
+```{r}
+ggplot(data=activity)+
+  geom_point(mapping = aes(x=FairlyActiveMinutes, y=Calories),color='green')+
+  geom_smooth(mapping = aes(x=FairlyActiveMinutes, y=Calories), color = "darkgreen")+
+  labs(title="Calorias vs tiempo (moderadamente activo)")
+```
+```{r}
+ggplot(data=activity)+
+  geom_point(mapping = aes(x=LightlyActiveMinutes, y=Calories),color='green')+
+  geom_smooth(mapping = aes(x=LightlyActiveMinutes, y=Calories), color = "darkgreen")+
+  labs(title="Calorias vs tiempo (ligeramente activo)")
+```
+
+De estos gráficos se puede concluir que los usuarios que queman más calorías son aquellos que son muy activos.
+
+#### Registro de sueño
+
+Por otro lado, de los datos de sueño podemos comparar el tiempo que pasan los usuarios en la cama contra el tiempo que pasan dormidos. Como se puede ver en la siguiente gráfica, la relación es lineal.
+
+
+```{r}
+ggplot(data=sleep)+
+  geom_point(mapping = aes(x=TotalTimeInBed, y=TotalMinutesAsleep),color='red')+
+  geom_smooth(mapping = aes(x=TotalTimeInBed, y=TotalMinutesAsleep), color = "darkred")+
+  labs(title="Tiempo de sueño vs tiempo en la cama")
+```
+
+#### Registro de peso
+
+Por otro lado, los usuarios de los dispositivos también mostraron interés en registrar su peso. Las entradas se pueden hacer manualmente o automáticamente desde una báscula digital. El tipo de registro que utilizaron los usuarios se puede ver en el siguiente gráfico, donde predominan los datos tomados manualmente
+
+```{r}
+ggplot(weight)+
+  geom_bar(mapping = aes(x=IsManualReport, fill=IsManualReport))+
+  labs(title = "Registro manual o automático del peso de los usuarios")
+```
+
+#### Registro de ritmo cardiaco
+
+Otra observación interesante es que de los 14 usuarios que registraron su ritmo cardiaco, donde el mínimo valor en promedio registrado fue de 66.12 mientras que el máximo valor en promedio registrado es 93.7.
+
+
+#### Conclusiones
+
+Del análisis realizado se puede concluir lo siguiente:
+1. Todos los usuarios del estudio registra su actividad diaria, un buen porcentaje de los mismos también monitorea su sueño, un porcentaje más chico de usuarios monitorean su ritmo cardiaco y un porcentaje aún más pequeño registra su peso.
+2. En este gráfico se puede ver que la relación entre los pasos es directamente proporcional a las calorías quemadas.
+3. La mayoría de los usuarios registran actividad considerada como ligeramente activa seguida por actividad muy activa y finalmente moderadamente activa.
+4. Los usuarios que queman más calorías son aquellos que son muy activos.
+5. De los usuarios que registran su peso, la mayoría lo hacen manualmente.
+
+
+#### Recomendaciones
+
+Si aplicamos los resultados del análisis de datos a los productos Leaf, Time y App BellaBeat, se pueden seguir las siguientes recomendaciones para las futuras campañas de marketing.
+
+* Enfatizar el seguimiento de actividad física y sueño en las campañas de marketing de los dispositivos de seguimiento BellaBeat.
+
+* Incentivar a los usuarios a que utilicen los dispositivos de seguimiento BellaBeat con gráficos que muestren la relación entre los pasos dados y la quema de calorías.
+
+* La mayoría de los usuarios de los dispositivos de seguimiento registran actividad física moderada, por lo que las campañas de marketing no deberían enfocarse únicamente en atletas de alto rendimiento.
+
+* El peso es una de las variables con menos observaciones, por lo que las campañas de marketing no deberían estar enfocadas en el registro de este en los dispositivos BellaBeat.
+
+Este análisis está basado en un conjunto de datos público de 33 usuarios de FitBit. Aunque es un buen comienzo en el análisis de los dispositivos de seguimiento inteligentes en el mercado, sería muy enriquecedor si se contara con otras fuentes de datos de otros fabricantes, lo que implicaría un mayor número de usuarios.
